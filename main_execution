@@ -1,0 +1,61 @@
+clc;
+clear all;
+close all;
+
+%% Parameters
+params.win_size = 1024;
+params.hop_size = 512;
+params.min_freq = 86;
+params.max_freq = 8000;
+params.num_mel_filts = 40;
+params.n_dct = 15;
+
+% Training file names
+fpath1 = 'example1.wav';
+fpath2 = 'example2.wav';
+fpath3 = 'example3.wav';
+fpath4 = 'example4.wav';
+
+% Training
+[train_features, train_labels, a, b] = create_train_set(params, fpath1, fpath2, fpath3, fpath4);
+
+% Testing file names
+fpath1 = 'example1.wav';
+fpath2 = 'example2.wav';
+fpath3 = 'example3.wav';
+fpath4 = 'example4.wav';
+
+[test_features, test_labels] = create_test_set(params, a, b, fpath1, fpath2, fpath3, fpath4);
+
+% Predict labels
+[predicted_labels] = predict_labels(train_features, train_labels, test_features);
+
+%Accuracy calculation
+[overall_accuracy, per_class_accuracy] = score_prediction(test_labels, predicted_labels)
+% class order = [eguitar piano synth trumpet]
+
+clearvars -except params;
+
+% Training file names
+fpath1 = 'example1.wav';
+fpath2 = 'example2.wav';
+fpath3 = 'example3.wav';
+fpath4 = 'example4.wav';
+
+% Training
+[train_features, train_labels, a, b] = create_train_set(params,fpath1, fpath2, fpath3, fpath4);
+
+% Testing file names
+fpath1 = 'example1.wav';
+fpath2 = 'example2.wav';
+fpath3 = 'example3.wav';
+fpath4 = 'example4.wav';
+
+[test_features, test_labels] = create_test_set(params, a, b, fpath1, fpath2, fpath3, fpath4);
+
+% Predict labels
+[predicted_labels] = predict_labels(train_features, train_labels, test_features);
+
+% Accuracy calculation
+[overall_accuracy, per_class_accuracy] = score_prediction(test_labels, predicted_labels)
+% class order = [example1 example2 example3 example4]
