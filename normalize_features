@@ -1,0 +1,29 @@
+function [features_norm, a, b] = normalize_features(features,varargin)
+[m,n] = size(features);
+if (isempty(varargin));
+    a = (min(features'))';
+    for j=1:n
+        a_temp(:,j) = a;
+    end
+    b = max((features-a_temp)')';
+elseif (length(varargin) == 1);
+    a = cell2mat(varargin(1));
+    for j=1:n
+        a_temp(:,j) = a;
+    end
+    b = (max((features-a_temp)'))';
+elseif (length(varargin) == 2)
+    a = cell2mat(varargin(1));
+    b = cell2mat(varargin(2));
+else
+    disp('Error. Number of ip arguments to normalize_features cannot exceed 3');
+    exit;
+end
+
+for j=1:n
+    a_temp(:,j) = a;
+    b_temp(:,j) = b;
+end
+features_norm = (features-a_temp)./b_temp;
+%features_norm = 1;
+end
