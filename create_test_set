@@ -1,0 +1,18 @@
+function [test_features, test_labels] = create_test_set(params, a, b, varargin)
+
+    test_features = [];
+    test_labels = [];
+    for i=1:nargin-3
+        [mfccs,fs_mfcc] = compute_mfccs(varargin{i},params.win_size,params.hop_size,params.min_freq,params.max_freq,params.num_mel_filts,params.n_dct);
+        [features] = compute_features(mfccs,fs_mfcc);
+        [features_norm, ~, ~] = normalize_features(features,a(:,i),b(:,i));
+        test_features = [test_features features_norm];
+        temp_label(1,1:length(features_norm)) = i; 
+        test_labels = [test_labels temp_label];
+        %a(:,i) = a;
+        %b(:,i) = b;
+        clearvars mfccs fs_mfcc features features_norm temp_label;
+    end
+    
+end
+
