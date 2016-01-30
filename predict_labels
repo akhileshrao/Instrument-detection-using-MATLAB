@@ -1,0 +1,14 @@
+function [predicted_labels] = predict_labels(train_features, train_labels, test_features)
+[m_train,n_train] = size(train_features);
+[m_test,n_test] = size(test_features);
+
+for i=1:n_test
+    for j=1:n_train
+        %score(i,j) = sum(train_features(:,j).*test_features(:,i));
+        score(i,j) = sum((train_features(:,j)-test_features(:,i)).^2);
+    end
+end
+
+[~,index] = min(score');
+
+predicted_labels = train_labels(index); 
