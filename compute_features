@@ -1,0 +1,11 @@
+function [features] = compute_features(mfccs,fs_mfcc)
+    j=1;
+    for i=1:fs_mfcc:length(mfccs)
+        if (i+fs_mfcc-1 < length(mfccs))
+            features(:,j) = mean(mfccs(2:15,i:i+fs_mfcc-1),2);
+        else
+            features(:,j) = mean(mfccs(2:15,i:length(mfccs)),2);
+        end
+        j=j+1;
+    end
+end
