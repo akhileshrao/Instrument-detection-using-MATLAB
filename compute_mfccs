@@ -1,0 +1,78 @@
+function [mfccs,fs_mfcc] = compute_mfccs(filepath,win_size,hop_size,min_freq,max_freq,num_mel_filts,n_dct)
+
+[input,Fs] = wavread(filepath);
+no_of_DFT_points = 1024;
+
+% Computing spectrogram with Hamming window and given window and hop size
+
+w = hamming(win_size);
+
+total_frames = round((length(input)/hop_size));
+for frame_no=1:total_frames
+    
+    start_index = hop_size*(frame_no-1)+1;
+    end_index = start_index + win_size - 1;
+    
+    if (end_index > length(input))
+            input_frame = [input(start_index:length(input)); zeros(end_index - length(input),1)];
+            break;
+        else
+            input_frame = input(start_index:end_index);
+    end
+    
+    input_frm(frame_no,:) = input_frame.*w;
+    spectrogram(frame_no,:) = fft(input_frame);
+end
+
+% Creating mel filter bank
+
+mel_freq_lower = hz2mel(min_freq);
+mel_freq_upper = hz2mel(max_freq);
+
+mel_spacing = (mel_freq_upper - mel_freq_lower)/(num_mel_filts+1);
+
+mel_filter_cutoffs(1) = mel_freq_lower;
+for filter_no = 1:num_mel_filts
+    mel_filter_cutoffs(filter_no+1) = mel_freq_lower + filter_no*mel_spacing;
+end
+
+mel_filter_cutoffs(filter_no+2) = mel_freq_upper;
+
+linear_filter_cutoffs = mel2hz(mel_filter_cutoffs);
+linear_filter_cutoffs_discrete = round(linear_filter_cutoffs*no_of_DFT_points/Fs);
+
+for i = 2:length(linear_filter_cutoffs_discrete)-1
+    filter(i-1,1:no_of_DFT_points) = 0;
+    for j = linear_filter_cutoffs_discrete(i-1):1:linear_filter_cutoffs_discrete(i+1)
+        if (j == linear_filter_cutoffs_discrete(i))
+            filter(i-1,j+1) = 1;
+        elseif (j < linear_filter_cutoffs_discrete(i))
+            filter(i-1,j+1) = (j-linear_filter_cutoffs_discrete(i-1))/(linear_filter_cutoffs_discrete(i) - linear_filter_cutoffs_discrete(i-1));
+        else
+            filter(i-1,j+1) = (linear_filter_cutoffs_discrete(i+1)-j)/(linear_filter_cutoffs_discrete(i+1) - linear_filter_cutoffs_discrete(i));
+        end
+    end
+end
+
+% plotting filter bank
+%cc = hsv(5);    % For color plot
+%for k = 1:num_mel_filts
+%    plot(Fs/no_of_DFT_points:(1/no_of_DFT_points)*Fs:Fs,filter(k,1:end),'color',cc(mod(k,5)+1,:));
+%    hold on;
+%end
+%hold off;
+
+% Computing mel power spectrum and dct
+for j=1:length(spectrogram)
+    for i =1:num_mel_filts
+        mel_filtered_signal(i,j) = 10*log(sum((spectrogram(j,:).*filter(i,:)).^2));
+        %mel_filtered_signal(i,j) = mel_filtered_signal(i,j)/sum(filter(i,:).^2);   % Normalising by filter energy
+    end
+    mfccs_full(:,j) = dct(mel_filtered_signal(:,j));
+    mfccs = abs(mfccs_full(1:n_dct,:));
+end
+
+hop_length_sec = hop_size/Fs;
+fs_mfcc = round(1/hop_length_sec);
+
+end
